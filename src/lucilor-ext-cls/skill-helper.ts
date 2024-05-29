@@ -1,4 +1,5 @@
-import {isBetween, timeout} from "@lucilor/utils";
+import {isBetween} from "@lucilor/utils";
+import {difference, sampleSize} from "lodash";
 import {ChooseSkillListParams, ChooseSkillsParams, DiscoverAomiSkillParams} from "./types";
 
 export const skillHelper = {
@@ -46,10 +47,11 @@ export const skillHelper = {
     };
     const listAll: SkillList = [];
     const discoveredSkills = LucilorExt.getStorage<SkillList>(player, "discoveredSkills", []);
+    const discoveredSkillNames = discoveredSkills.map((v) => v.name);
     const boundsSkills: SkillList = [];
     for (const character of get.gainableCharacters()) {
       const characterSkills = lib.character[character][3];
-      const toAdd = characterSkills.slice(0).removeArray(...discoveredSkills.map((v) => v.name));
+      const toAdd = difference(characterSkills, discoveredSkillNames);
       if (toAdd.length !== characterSkills.length) {
         for (const skill of toAdd) {
           if (!boundsSkills.find((v) => v.name === skill) && filterSkill(skill)) {
@@ -66,7 +68,7 @@ export const skillHelper = {
     }
     skillList.push(...boundsSkills.slice(0, num));
     if (skillList.length < num) {
-      skillList.push(...listAll.randomGets(num - skillList.length));
+      skillList.push(...sampleSize(listAll, num - skillList.length));
     }
     return skillList;
   },
@@ -230,37 +232,42 @@ export const skillHelper = {
     LucilorExt.setStorage(player, "discoveredSkills", discoveredSkills);
     player.updateMarks();
   },
-  updateAomiSkills: async (player: Player) => {
+  updateAomiSkills: (player: Player) => {
     LucilorExt.skillHelper.updateDiscoveredSkills(player);
     LucilorExt.setStorage(player, "aomi", LucilorExt.getStorage(player, "discoveredSkills"));
-    const skill = LucilorExt.getSkillName("aomi");
-    player.unmarkSkill(skill);
-    player.markSkill(skill);
-    await timeout(0);
   },
-  discoverAomiSkill: async (player: Player, {filter, isGameStart}: DiscoverAomiSkillParams = {}) => {
+  discoverAomiSkill: async (event: GameEventPromise, player: Player, {filter}: DiscoverAomiSkillParams = {}) => {
     const num = LucilorExt.getStorage(player, "aomi_choose", 0);
     const limit = LucilorExt.getStorage(player, "aomi_max", 0);
     const chooseFrom = LucilorExt.skillHelper.getChooseSkillList(player, {num, filter});
     const chooseTo = LucilorExt.getStorage<SkillList>(player, "discoveredSkills", []);
     const params: ChooseSkillsParams = {limit: [0, limit], chooseFrom, chooseTo, forced: true};
     await LucilorExt.skillHelper.discoverSkill(player, params);
-    await LucilorExt.skillHelper.updateAomiSkills(player);
+    LucilorExt.skillHelper.updateAomiSkills(player);
     const skills = LucilorExt.getStorage<SkillList>(player, "discoveredSkills", []).map((v) => v.name);
-    LucilorExt.skillHelper.tryUseStartSkills(player, skills, isGameStart);
+    LucilorExt.skillHelper.tryUseStartSkills(event, player, skills);
   },
-  tryUseStartSkills: (player: Player, skills: string | string[], isGameStart?: boolean) => {
+  tryUseStartSkills: (event: GameEventPromise, player: Player, skills: string | string[]) => {
     const usedStartSkills = LucilorExt.getStorage<string[]>(player, "usedStartSkills", []);
     if (!Array.isArray(skills)) {
       skills = [skills];
     }
+    const isGameStart = event.triggername === "gameStart";
     for (const skill of skills) {
       const startSkills = LucilorExt.gameHelper.getStartSkills(skill);
-      for (const startSkill of startSkills) {
-        if (!usedStartSkills.includes(startSkill)) {
-          usedStartSkills.push(startSkill);
+      for (const {name, reason} of startSkills) {
+        if (!usedStartSkills.includes(name)) {
+          usedStartSkills.push(name);
           if (!isGameStart) {
-            player.useSkill(startSkill);
+            let {global} = lib.skill[name].trigger || {};
+            if (typeof global === "string") {
+              global = [global];
+            }
+            if (reason === "gameStart" || reason === "enterGame") {
+              game.createTrigger(reason, name, player, event);
+            } else if (reason === "firstTurn" && player.phaseNumber > 1) {
+              player.useSkill(name);
+            }
           }
         }
       }

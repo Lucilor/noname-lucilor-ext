@@ -1,4 +1,5 @@
 import {keysOf} from "@lucilor/utils";
+import {sample} from "lodash";
 import {SkillSetGetter} from "./types";
 
 export const getAomiSkillSet: SkillSetGetter = () => [
@@ -52,8 +53,7 @@ export const getAomiSkillSet: SkillSetGetter = () => [
           priority: Infinity,
           forced: true,
           content: async (event, trigger, player) => {
-            const isGameStart = event.triggername === "phaseBefore" && game.phaseNumber < 1;
-            LucilorExt.skillHelper.discoverAomiSkill(player, {isGameStart});
+            await LucilorExt.skillHelper.discoverAomiSkill(event, player);
           }
         },
         after: {
@@ -63,7 +63,7 @@ export const getAomiSkillSet: SkillSetGetter = () => [
           priority: -Infinity,
           forced: true,
           content: async (event, trigger, player) => {
-            LucilorExt.skillHelper.discoverAomiSkill(player);
+            await LucilorExt.skillHelper.discoverAomiSkill(event, player);
           }
         },
         dmgCount: {
@@ -164,7 +164,7 @@ export const getAomiSkillSet: SkillSetGetter = () => [
                           player.line(result.targets, "green");
                           const target = result.targets[0];
                           LucilorExt.skillHelper.addSkillLog(skillToTeach, target);
-                          LucilorExt.skillHelper.tryUseStartSkills(target, [skillToTeach]);
+                          LucilorExt.skillHelper.tryUseStartSkills(event, target, [skillToTeach]);
                         }
                       }
                     }
@@ -181,7 +181,7 @@ export const getAomiSkillSet: SkillSetGetter = () => [
               }
             }
             if (isUpgraded) {
-              await LucilorExt.skillHelper.discoverAomiSkill(player);
+              await LucilorExt.skillHelper.discoverAomiSkill(event, player);
             }
           },
           ai: {
@@ -239,7 +239,7 @@ export const getAomiSkillSet: SkillSetGetter = () => [
             } else if (player.identity === "fan") {
               targetIdentity = "fan";
             }
-            const target = game.filterPlayer((p) => p.identity === targetIdentity).randomGet();
+            const target = sample(game.filterPlayer((p) => p.identity === targetIdentity));
             if (target) {
               if (!_status.connectMode) {
                 if (player === game.me) {
@@ -291,11 +291,7 @@ export const getAomiSkillSet: SkillSetGetter = () => [
             if (trigger.player.maxHp < 1) {
               trigger.player.maxHp = 1;
             }
-            LucilorExt.skillHelper.updateDiscoveredSkills(player);
-            if (LucilorExt.getStorage(player, "discoveredSkills", []).length > LucilorExt.getStorage(player, "aomi_max", 0)) {
-              await LucilorExt.skillHelper.discoverAomiSkill(player);
-              await LucilorExt.skillHelper.updateAomiSkills(player);
-            }
+            await LucilorExt.skillHelper.discoverAomiSkill(event, player);
             trigger.player.recover(1 - trigger.player.hp);
             trigger.player.discard(trigger.player.getCards("j"));
             trigger.player.turnOver(false);

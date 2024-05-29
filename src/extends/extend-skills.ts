@@ -1,4 +1,5 @@
 import {ObjectOf} from "@lucilor/utils";
+import {sample, sampleSize} from "lodash";
 
 export const extendSkills: GameImportFunction = (lib, game, ui, get) => {
   lib.skill["requanfeng_gain"].filter = (event) =>
@@ -6,23 +7,6 @@ export const extendSkills: GameImportFunction = (lib, game, ui, get) => {
       const info = get.info(skill, event.player);
       return info && !info.hiddenSkill && !info.preHidden && !info.zhuSkill && !info.charlotte;
     }).length > 0;
-  lib.skill["xinfu_falu"].content = async (event, trigger, player) => {
-    if (!trigger || trigger.name.indexOf("lose") !== 0) {
-      for (let i = 0; i < lib.suit.length; i++) {
-        if (!player.hasMark("xinfu_falu_" + lib.suit[i])) {
-          player.addMark("xinfu_falu_" + lib.suit[i]);
-        }
-      }
-      return;
-    }
-    const evt = trigger.getl(player);
-    for (let i = 0; i < evt.cards2.length; i++) {
-      const suit = get.suit(evt.cards2[i]);
-      if (!player.hasMark("xinfu_falu_" + suit)) {
-        player.addMark("xinfu_falu_" + suit);
-      }
-    }
-  };
   if (LucilorExt.getConfig("skipMiniGames")) {
     lib.skill["chongxu"].content = async (event, trigger, player) => {
       let score = 5;
@@ -91,7 +75,7 @@ export const extendSkills: GameImportFunction = (lib, game, ui, get) => {
       }
     };
     lib.skill["qiaosi"].content = async (event, trigger, player) => {
-      const list2 = ["trick", "trick", ["sha", "shan", "tao", "jiu"].randomGet(), "equip", "equip"];
+      const list2 = ["trick", "trick", sample(["sha", "shan", "tao", "jiu"]), "equip", "equip"];
       const {cards} = event;
       while (list2.length) {
         const filter = list2.shift();
@@ -204,7 +188,7 @@ export const extendSkills: GameImportFunction = (lib, game, ui, get) => {
         return;
       }
       const result = await player
-        .chooseButton(["请选择一种装备牌", [list.randomGets(3), "vcard"]], true)
+        .chooseButton(["请选择一种装备牌", [sampleSize(list, 3), "vcard"]], true)
         .set("ai", (button: Button) => get.value({name: button.link[2]}, player, "raw"))
         .forResult();
       const name = result.links[0][2];

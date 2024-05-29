@@ -47,5 +47,4 @@ export interface ChooseSkillsParams {
 }
 export interface DiscoverAomiSkillParams {
   filter?: ChooseSkillListParams["filter"];
-  isGameStart?: boolean;
 }
