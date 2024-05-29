@@ -1,0 +1,53 @@
+#roundmenu {
+  overflow: visible;
+
+  .LucilorExt-round-menu {
+    --size: 20px;
+    position: absolute;
+    top: calc(var(--size) * -0.5);
+    right: calc(var(--size) * -0.5);
+    left: auto;
+    width: var(--size);
+    height: var(--size);
+    border-radius: 50%;
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+
+    &:after {
+      content: "L";
+      font-size: calc(var(--size) * 0.8);
+      color: black;
+    }
+  }
+}
+
+.LucilorExt-show-card-count {
+  .player {
+    .card-count {
+      display: none;
+    }
+    .LucilorExt-handcard-count {
+      position: absolute;
+      left: 0px;
+      bottom: -25px;
+      padding: 2px;
+      background-color: rgba(0, 0, 0, 0.8);
+      font-size: 18px;
+      font-family: xinwei, xingkai;
+      color: white;
+      z-index: 88;
+      transition: transform, opacity;
+    }
+    &[data-position="0"] {
+      .LucilorExt-handcard-count {
+        top: -35px;
+        bottom: auto;
+        left: 145px;
+        font-size: 20px;
+      }
+    }
+  }
+}

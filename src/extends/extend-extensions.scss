@@ -1,0 +1,43 @@
+#arena.decadeUI {
+  // 十周年UI start
+  .card > .temp-name {
+    font-family: shousha !important;
+  }
+
+  &[data-right-layout="on"] {
+    > .hand-wrap,
+    > .hand-back {
+      right: 172px;
+    }
+  }
+
+  &[data-dynamic-skin-outcrop="on"] > .player > .dynamic-wrap > .animation-player {
+    border-top-left-radius: 68px;
+    border-top-right-radius: 40px;
+  }
+
+  .buttons.guanxing .card[data-card-type="character"] {
+    background-size: cover !important;
+    background-position: 0 0 !important;
+
+    .suit-num,
+    .top-name {
+      background: rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(2px);
+      line-height: 22px;
+      top: 5px;
+    }
+
+    .suit-num {
+      left: 0;
+    }
+
+    .top-name {
+      width: unset;
+      left: 25px;
+      right: 0;
+    }
+  }
+
+  // 十周年UI end
+}
