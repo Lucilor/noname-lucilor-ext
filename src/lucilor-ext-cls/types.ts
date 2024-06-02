@@ -21,6 +21,7 @@ export interface LucilorExtConfig {
   singleCharacter: boolean;
   resizeOnStart: boolean;
   menuStyles: boolean;
+  showCardCount: boolean;
 }
 
 export interface AomiSkillConfig {

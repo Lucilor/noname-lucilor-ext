@@ -245,9 +245,9 @@ export const skillHelper = {
     await LucilorExt.skillHelper.discoverSkill(player, params);
     LucilorExt.skillHelper.updateAomiSkills(player);
     const skills = LucilorExt.getStorage<SkillList>(player, "discoveredSkills", []).map((v) => v.name);
-    LucilorExt.skillHelper.tryUseStartSkills(event, player, skills);
+    await LucilorExt.skillHelper.tryUseStartSkills(event, player, skills);
   },
-  tryUseStartSkills: (event: GameEventPromise, player: Player, skills: string | string[]) => {
+  tryUseStartSkills: async (event: GameEventPromise, player: Player, skills: string | string[]) => {
     const usedStartSkills = LucilorExt.getStorage<string[]>(player, "usedStartSkills", []);
     if (!Array.isArray(skills)) {
       skills = [skills];
@@ -264,9 +264,9 @@ export const skillHelper = {
               global = [global];
             }
             if (reason === "gameStart" || reason === "enterGame") {
-              game.createTrigger(reason, name, player, event);
+              await game.createTrigger(reason, name, player, event);
             } else if (reason === "firstTurn" && player.phaseNumber > 1) {
-              player.useSkill(name);
+              await player.useSkill(name);
             }
           }
         }

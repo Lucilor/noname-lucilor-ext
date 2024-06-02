@@ -91,7 +91,14 @@ const extLibPre: GameImportFunction = () => {
 };
 
 const extGamePre: GameImportFunction = () => {
-  // Here goes nothing
+  if (LucilorExt.getConfig("showCardCount")) {
+    document.body.classList.add(LucilorExt.getClassName("show-card-count"));
+    window.setInterval(() => {
+      for (const player of game.players) {
+        LucilorExt.skillHelper.updateCardCount(player);
+      }
+    }, 100);
+  }
 };
 
 const extGetPre: GameImportFunction = (lib, game, ui, get) => {
