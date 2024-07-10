@@ -25,10 +25,12 @@ export const getAomiSkillSet: SkillSetGetter = () => [
           const maxStr = LucilorExt.getColoredStr(String(max), "orange");
           const chooseStr = LucilorExt.getColoredStr(String(choose), "deeppink");
           const tokenStr = LucilorExt.getColoredStr(String(token), "lightgreen");
+          const avgMaxHp = LucilorExt.getColoredStr(LucilorExt.skillHelper.getAvgMaxHp(player).toFixed(2), "lightgreen");
           const reviveCountStr = LucilorExt.getColoredStr(String(reviveCount), "lightgreen");
           strs.push(`上限：${maxStr}`);
           strs.push(`候选：${chooseStr}`);
           strs.push(`代币：${tokenStr}`);
+          strs.push(`体力上限均值：${avgMaxHp}`);
           strs.push(`已使用复活币：${reviveCountStr}`);
           return strs.join("<br>");
         }
@@ -196,8 +198,7 @@ export const getAomiSkillSet: SkillSetGetter = () => [
           },
           forced: true,
           content: async (event, trigger, player) => {
-            const players = game.players.filter((p) => p !== player);
-            const maxHp = Math.max(...players.map((p) => (isNaN(Number(p.maxHp)) ? 1 : Number(p.maxHp))));
+            const maxHp = Math.ceil(LucilorExt.skillHelper.getAvgMaxHp(player));
             if (player.maxHp < maxHp) {
               player.gainMaxHp();
               player.recover();
@@ -306,7 +307,7 @@ export const getAomiSkillSet: SkillSetGetter = () => [
       aomi: "奥秘",
       aomi_info: [
         `<font color="#ff92f9"<b>『学无止境』</b></font><br>锁定技，游戏开始时、回合开始前、回合结束后和你翻面后，休整技能库。你每受到1点伤害（或体力流失）后获得1枚代币，若此时代币足够升级，则升级技能库。`,
-        `<font color="#ff92f9"<b>『唯我独尊』</b></font><br>锁定技，每轮开始时，若你的体力上限：大于X，你减1点体力上限；小于X，你加1点体力上限并回复1点体力（X为其他角色的最大体力上限）。`,
+        `<font color="#ff92f9"<b>『唯我独尊』</b></font><br>锁定技，每轮开始时，若你的体力上限：大于X，你减1点体力上限；小于X，你加1点体力上限并回复1点体力（X为其他角色的平均体力上限，向上取整）。`,
         `<font color="#ff92f9"<b>『慧识摘星』</b></font><br>锁定技，游戏开始时，你将所有【诸葛连弩】、【元戎精械弩】移出游戏。若你的身份为：主公，你随机得知一名忠臣的身份；反贼，你随机得知一名反贼的身份。`,
         `<font color="#ff92f9"<b>『漫漫路远』</b></font><br>一名角色死亡前，你可以减少1技能库上限（若足够）并防止该角色死亡，其弃置判定区内的牌并复原武将牌，然后将体力回复至1并摸3张牌。`
       ].join("<br>")

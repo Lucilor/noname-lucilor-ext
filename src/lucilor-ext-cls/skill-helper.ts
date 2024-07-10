@@ -215,9 +215,12 @@ export const skillHelper = {
     }
     for (const {name} of skills2) {
       const i = discoveredSkills.findIndex((v) => v.name === name);
-      if (i >= 0) {
+      if (i >= 0 && !skills1.find((v) => v.name === name)) {
         discoveredSkills.splice(i, 1);
-        LucilorExt.skillHelper.removeSkillLog(name, player);
+        // fixme: ???
+        setTimeout(() => {
+          LucilorExt.skillHelper.removeSkillLog(name, player);
+        }, 0);
       }
     }
   },
@@ -256,19 +259,24 @@ export const skillHelper = {
     for (const skill of skills) {
       const startSkills = LucilorExt.gameHelper.getStartSkills(skill);
       for (const {name, reason} of startSkills) {
-        if (!usedStartSkills.includes(name)) {
-          usedStartSkills.push(name);
-          if (!isGameStart) {
-            let {global} = lib.skill[name].trigger || {};
-            if (typeof global === "string") {
-              global = [global];
-            }
-            if (reason === "gameStart" || reason === "enterGame") {
-              await game.createTrigger(reason, name, player, event);
-            } else if (reason === "firstTurn" && player.phaseNumber > 1) {
-              await player.useSkill(name);
-            }
-          }
+        if (usedStartSkills.includes(name)) {
+          continue;
+        }
+        usedStartSkills.push(name);
+        if (isGameStart) {
+          continue;
+        }
+        let {global} = lib.skill[name].trigger || {};
+        if (!Array.isArray(global) && global) {
+          global = [global];
+        }
+        if (global?.includes("phaseBefore") && event.name === "phase" && game.phaseNumber === 0) {
+          continue;
+        }
+        if (reason === "gameStart" || reason === "enterGame") {
+          await game.createTrigger(reason, name, player, event);
+        } else if (reason === "firstTurn" && player.phaseNumber > 0) {
+          await player.useSkill(name);
         }
       }
     }
@@ -337,6 +345,18 @@ export const skillHelper = {
       limitStr = LucilorExt.getColoredStr(limitStr, "#ff2b2b");
     }
     handcardLimitEl.innerHTML = `${num}/${limitStr}`;
+  },
+  getAvgMaxHp: (player: Player) => {
+    let num = 0;
+    let l = 0;
+    for (const target of game.players) {
+      if (target === player) {
+        continue;
+      }
+      num += target.maxHp;
+      l++;
+    }
+    return num / l;
   }
 };
 

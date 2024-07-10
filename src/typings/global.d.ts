@@ -1,3 +1,4 @@
+import {ObjectOf} from "@lucilor/utils";
 import {LoDashStatic} from "lodash";
 
 declare global {
@@ -5,10 +6,10 @@ declare global {
 
   const lib: Library;
   const game: Game;
-  const ui: UI;
+  const ui: UI & ObjectOf<any>;
   const get: Get;
   const ai: AI;
-  const _status: Status;
+  const _status: Status & ObjectOf<any>;
   type GameImportFunction<T = void> = (lib: Library, game: Game, ui: UI, get: Get, ai: AI, status: Status) => T;
 
   type ExSkillConifgData = Required<PackageData["skill"]>;

@@ -12,11 +12,11 @@
   align-items: center;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
+  padding: 2px 4px;
   &:hover {
     background-color: black;
     color: white;
   }
-  padding: 2px 4px;
 }
 
 .LucilorExt-button-group {

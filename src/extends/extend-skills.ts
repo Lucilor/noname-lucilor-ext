@@ -114,7 +114,7 @@ export const extendSkills: GameImportFunction = (lib, game, ui, get) => {
           position: "he",
           filterCard: true,
           selectCard: event.num,
-          filterTarget(card, player, target) {
+          filterTarget(card: Card, player: Player, target: Player) {
             return player !== target;
           },
           ai1() {
