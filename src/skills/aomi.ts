@@ -8,6 +8,7 @@ export const getAomiSkillSet: SkillSetGetter = () => [
     data: {
       charlotte: true,
       superCharlotte: true,
+      persevereSkill: true,
       mark: true,
       intro: {
         content: (storage, player) => {
@@ -52,6 +53,7 @@ export const getAomiSkillSet: SkillSetGetter = () => [
             global: "gameStart",
             player: ["phaseBefore"]
           },
+          persevereSkill: true,
           priority: Infinity,
           forced: true,
           content: async (event, trigger, player) => {
@@ -62,6 +64,7 @@ export const getAomiSkillSet: SkillSetGetter = () => [
           trigger: {
             player: ["phaseAfter", "turnOverAfter"]
           },
+          persevereSkill: true,
           priority: -Infinity,
           forced: true,
           content: async (event, trigger, player) => {
@@ -72,6 +75,7 @@ export const getAomiSkillSet: SkillSetGetter = () => [
           trigger: {
             player: ["damageAfter", "loseHpAfter"]
           },
+          persevereSkill: true,
           forced: true,
           priority: -1,
           content: async (event, trigger, player) => {
@@ -196,6 +200,7 @@ export const getAomiSkillSet: SkillSetGetter = () => [
           trigger: {
             global: "roundStart"
           },
+          persevereSkill: true,
           forced: true,
           content: async (event, trigger, player) => {
             const maxHp = Math.ceil(LucilorExt.skillHelper.getAvgMaxHp(player));
@@ -211,6 +216,7 @@ export const getAomiSkillSet: SkillSetGetter = () => [
           trigger: {
             global: "gameStart"
           },
+          persevereSkill: true,
           forced: true,
           content: async (event, trigger, player: Player) => {
             const shouldRemove = (card: Card) => ["zhuge", "rewrite_zhuge", ""].includes(card.name);
@@ -261,6 +267,7 @@ export const getAomiSkillSet: SkillSetGetter = () => [
           trigger: {
             global: "dieBefore"
           },
+          persevereSkill: true,
           filter: (event, player) => 0 < LucilorExt.getStorage(player, "aomi_max", 0),
           logTarget: "player",
           skillAnimation: true,
@@ -306,6 +313,7 @@ export const getAomiSkillSet: SkillSetGetter = () => [
     translate: {
       aomi: "奥秘",
       aomi_info: [
+        "持恒技。",
         `<font color="#ff92f9"<b>『学无止境』</b></font><br>锁定技，游戏开始时、回合开始前、回合结束后和你翻面后，休整技能库。你每受到1点伤害（或体力流失）后获得1枚代币，若此时代币足够升级，则升级技能库。`,
         `<font color="#ff92f9"<b>『唯我独尊』</b></font><br>锁定技，每轮开始时，若你的体力上限：大于X，你减1点体力上限；小于X，你加1点体力上限并回复1点体力（X为其他角色的平均体力上限，向上取整）。`,
         `<font color="#ff92f9"<b>『慧识摘星』</b></font><br>锁定技，游戏开始时，你将所有【诸葛连弩】、【元戎精械弩】移出游戏。若你的身份为：主公，你随机得知一名忠臣的身份；反贼，你随机得知一名反贼的身份。`,

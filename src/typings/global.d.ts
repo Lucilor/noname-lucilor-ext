@@ -5,7 +5,7 @@ declare global {
   const _: LoDashStatic;
 
   const lib: Library;
-  const game: Game;
+  const game: Game & ObjectOf<any>;
   const ui: UI & ObjectOf<any>;
   const get: Get;
   const ai: AI;

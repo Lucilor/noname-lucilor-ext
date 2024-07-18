@@ -106,7 +106,7 @@ const extGetPre: GameImportFunction = (lib, game, ui, get) => {
     const skillInfoTranslation = get.skillInfoTranslation;
     get.skillInfoTranslation = (name: string, player?: Player, isFromSelf?: boolean) => {
       const arr: [RegExp, string, boolean?][] = [
-        [/(非?锁定|限定|觉醒|转换|阵法|主公|使命|主将|副将|隐匿|宗族)技/, "orange", true],
+        [/(非?锁定|限定|觉醒|转换|阵法|主公|使命|主将|副将|隐匿|宗族|持恒)技/, "orange", true],
         [
           /((你|其他角色|每名角色|一名角色|主公)的?(第(.+?)个)?)?((准备|判定|摸牌|出牌|弃牌|结束|此|该|这一?)阶段)(每名角色)?((限([^，。；]+?)次)?((开始|结束)(前|时|后)?)?)/,
           "cyan"
