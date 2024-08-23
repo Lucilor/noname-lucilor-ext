@@ -215,7 +215,7 @@ export class LucilorExtCls {
   }
 
   resize() {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const remote = require("@electron/remote");
     const win = remote.getCurrentWindow();
     const screen = remote.screen;
@@ -299,7 +299,7 @@ export class LucilorExtCls {
         try {
           const stat = lib.node.fs.statSync(__dirname + "/" + path);
           resolve(!!stat);
-        } catch (e) {
+        } catch {
           resolve(false);
           return;
         }

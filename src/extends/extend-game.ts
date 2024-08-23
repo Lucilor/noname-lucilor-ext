@@ -10,7 +10,7 @@ export const extendGamePre: GameImportFunction = (...args) => {
     const {key, altKey} = event;
     if (altKey) {
       if (key === "q") {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const webContents = require("@electron/remote").getCurrentWebContents();
         webContents.toggleDevTools();
       } else if (key === "e") {

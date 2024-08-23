@@ -84,7 +84,7 @@ export const getAomiSkillSet: SkillSetGetter = () => [
             LucilorExt.setStorage(player, "aomi_token", token0);
             player.say(`奥秘代币：${token0}`);
             let isUpgraded = false;
-            // eslint-disable-next-line no-constant-condition
+
             while (true) {
               const token = LucilorExt.getStorage(player, "aomi_token", 0);
               const max = LucilorExt.getStorage(player, "aomi_max", 0);
