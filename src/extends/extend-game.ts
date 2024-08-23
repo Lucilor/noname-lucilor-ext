@@ -120,9 +120,9 @@ const extGetPre: GameImportFunction = (lib, game, ui, get) => {
         [/[【〖「『“‘]([^，。；]+?)[】〗」』”’]/, "yellow"]
       ];
       const skillTips = LucilorExt.skillTipsHelper.skillTips;
-      const skill = lib.skill[name];
       if (!isFromSelf) {
-        let derivation = skill.derivation || [];
+        const skill = lib.skill[name];
+        let derivation = skill?.derivation || [];
         if (typeof derivation === "string") {
           derivation = [derivation];
         }
