@@ -240,13 +240,11 @@ export const getAomiSkillSet: SkillSetGetter = () => [
               game.log(toRemove, "被移出了游戏");
             }
 
-            let targetIdentity: string | undefined;
-            if (player.identity === "zhu") {
-              targetIdentity = "zhong";
-            } else if (player.identity === "fan") {
-              targetIdentity = "fan";
+            let targets: Player[] = player.getFriends();
+            if (targets.length < 1) {
+              targets = game.players.filter((p) => p !== player);
             }
-            const target = sample(game.filterPlayer((p) => p.identity === targetIdentity));
+            const target = sample(targets);
             if (target) {
               if (!_status.connectMode) {
                 if (player === game.me) {
@@ -258,7 +256,7 @@ export const getAomiSkillSet: SkillSetGetter = () => [
               } else {
                 player
                   .chooseControl("ok")
-                  .set("dialog", [`${get.translation(target)}是${get.translation(targetIdentity + "2")}`, [[target.name], "character"]]);
+                  .set("dialog", [`${get.translation(target)}是${get.translation(target.identity + "2")}`, [[target.name], "character"]]);
               }
             }
           }
@@ -316,7 +314,7 @@ export const getAomiSkillSet: SkillSetGetter = () => [
         "持恒技。",
         `<font color="#ff92f9"<b>『学无止境』</b></font><br>锁定技，游戏开始时、回合开始前、回合结束后和你翻面后，休整技能库。你每受到1点伤害（或体力流失）后获得1枚代币，若此时代币足够升级，则升级技能库。`,
         `<font color="#ff92f9"<b>『唯我独尊』</b></font><br>锁定技，每轮开始时，若你的体力上限：大于X，你减1点体力上限；小于X，你加1点体力上限并回复1点体力（X为其他角色的平均体力上限，向上取整）。`,
-        `<font color="#ff92f9"<b>『慧识摘星』</b></font><br>锁定技，游戏开始时，你将所有【诸葛连弩】、【元戎精械弩】移出游戏。若你的身份为：主公，你随机得知一名忠臣的身份；反贼，你随机得知一名反贼的身份。`,
+        `<font color="#ff92f9"<b>『慧识摘星』</b></font><br>锁定技，游戏开始时，你将所有【诸葛连弩】、【元戎精械弩】移出游戏，然后随机得知一名友方角色（若没有则改为随机角色）的身份。`,
         `<font color="#ff92f9"<b>『漫漫路远』</b></font><br>一名角色死亡前，你可以减少1技能库上限（若足够）并防止该角色死亡，其弃置判定区内的牌并复原武将牌，然后将体力回复至1并摸3张牌。`
       ].join("<br>")
     },
