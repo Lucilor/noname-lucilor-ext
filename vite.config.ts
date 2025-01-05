@@ -29,6 +29,7 @@ export default defineConfig(({mode}) => {
             fileName: () => "extension.js",
             name: "lucilor.extension"
           },
+          target: "chrome78",
           minify: false,
           sourcemap: true
         }

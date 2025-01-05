@@ -1,6 +1,6 @@
-@import "./styles/character-preview-img.scss";
-@import "./styles/glowing-card.scss";
-@import "./styles/menu.scss";
+@use "styles/character-preview-img.scss";
+@use "styles/glowing-card.scss";
+@use "styles/menu.scss";
 
 .LucilorExt-button {
   background-color: white;
