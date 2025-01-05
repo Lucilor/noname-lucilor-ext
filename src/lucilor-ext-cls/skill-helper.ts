@@ -1,3 +1,4 @@
+import {getAomiUpgradeStat} from "@/skills/aomi";
 import {isBetween} from "@lucilor/utils";
 import {difference, sampleSize} from "lodash";
 import {ChooseSkillListParams, ChooseSkillsParams, DiscoverAomiSkillParams} from "./types";
@@ -240,8 +241,8 @@ export const skillHelper = {
     LucilorExt.setStorage(player, "aomi", LucilorExt.getStorage(player, "discoveredSkills"));
   },
   discoverAomiSkill: async (event: GameEventPromise, player: Player, {filter}: DiscoverAomiSkillParams = {}) => {
-    const num = LucilorExt.getStorage(player, "aomi_choose", 0);
-    const limit = LucilorExt.getStorage(player, "aomi_max", 0);
+    const num = getAomiUpgradeStat(player, "optionsNum");
+    const limit = getAomiUpgradeStat(player, "capacity");
     const chooseFrom = LucilorExt.skillHelper.getChooseSkillList(player, {num, filter});
     const chooseTo = LucilorExt.getStorage<SkillList>(player, "discoveredSkills", []);
     const params: ChooseSkillsParams = {limit: [0, limit], chooseFrom, chooseTo, forced: true};
@@ -281,23 +282,8 @@ export const skillHelper = {
       }
     }
   },
-  getAomiUpgradeCost: (player: Player) => {
-    const max = LucilorExt.getStorage(player, "aomi_max", 0);
-    return {max: Math.max(2, max), choose: 2, teach: 3};
-  },
   getAomiSkillList: (player: Player) => {
     return LucilorExt.getStorage<SkillList>(player, "aomi", []);
-  },
-  getAomiTeachableSkillList: (player: Player) => {
-    return LucilorExt.skillHelper.getAomiSkillList(player).filter((v) => LucilorExt.skillHelper.isSkillTeachable(player, v.name));
-  },
-  isSkillTeachable: (teacher: Player, skill: string) => {
-    return game.hasPlayer((current) => {
-      if (current === teacher || current.hasSkill(skill)) {
-        return false;
-      }
-      return true;
-    });
   },
   updateSingleCharacter(player: Player) {
     if (!LucilorExt.getConfig("singleCharacter")) {

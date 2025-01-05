@@ -14,8 +14,8 @@ export const getAomiSkillSet: SkillSetGetter = () => [
         content: (storage, player) => {
           const skills = LucilorExt.getStorage<string[]>(player, "aomi", []);
           const token = LucilorExt.getStorage(player, "aomi_token", 0);
-          const max = LucilorExt.getStorage(player, "aomi_max", 0);
-          const choose = LucilorExt.getStorage(player, "aomi_choose", 0);
+          const capacity = getAomiUpgradeStat(player, "capacity");
+          const optionsNum = getAomiUpgradeStat(player, "optionsNum");
           const reviveCount = LucilorExt.getStorage(player, "aomi_reviveCount", 0);
           const strs: string[] = [];
           if (!skills || skills.length < 1) {
@@ -23,13 +23,13 @@ export const getAomiSkillSet: SkillSetGetter = () => [
           } else {
             strs.push("已获得技能：" + LucilorExt.getColoredStr(get.translation(storage), "cyan"));
           }
-          const maxStr = LucilorExt.getColoredStr(String(max), "orange");
-          const chooseStr = LucilorExt.getColoredStr(String(choose), "deeppink");
+          const capacityStr = LucilorExt.getColoredStr(String(capacity), "orange");
+          const optionsNumStr = LucilorExt.getColoredStr(String(optionsNum), "deeppink");
           const tokenStr = LucilorExt.getColoredStr(String(token), "lightgreen");
           const avgMaxHp = LucilorExt.getColoredStr(LucilorExt.skillHelper.getAvgMaxHp(player).toFixed(2), "lightgreen");
           const reviveCountStr = LucilorExt.getColoredStr(String(reviveCount), "lightgreen");
-          strs.push(`上限：${maxStr}`);
-          strs.push(`候选：${chooseStr}`);
+          strs.push(`上限：${capacityStr}`);
+          strs.push(`候选：${optionsNumStr}`);
           strs.push(`代币：${tokenStr}`);
           strs.push(`体力上限均值：${avgMaxHp}`);
           strs.push(`已使用复活币：${reviveCountStr}`);
@@ -39,8 +39,8 @@ export const getAomiSkillSet: SkillSetGetter = () => [
       init: (player) => {
         LucilorExt.setStorage(player, "aomi", []);
         LucilorExt.setStorage(player, "aomi_token", 0);
-        LucilorExt.setStorage(player, "aomi_choose", 3);
-        LucilorExt.setStorage(player, "aomi_max", 3);
+        setAomiUpgradeStat(player, "capacity", 3);
+        setAomiUpgradeStat(player, "optionsNum", 3);
         LucilorExt.setStorage(player, "aomi_reviveCount", 0);
       },
       ai: {
@@ -87,95 +87,51 @@ export const getAomiSkillSet: SkillSetGetter = () => [
 
             while (true) {
               const token = LucilorExt.getStorage(player, "aomi_token", 0);
-              const max = LucilorExt.getStorage(player, "aomi_max", 0);
-              const choose = LucilorExt.getStorage(player, "aomi_choose", 0);
-              const aomiTeachableSkills = LucilorExt.skillHelper.getAomiTeachableSkillList(player);
-              const choices: string[] = [];
-              const cost = LucilorExt.skillHelper.getAomiUpgradeCost(player);
-              const choiceList = [
-                `技能库上限+1（当前${max}，消耗${cost.max}代币）`,
-                `候选技能数量+1（当前${choose}，消耗${cost.choose}代币）`,
-                `令一名其他角色获得技能库中的一个技能（消耗${cost.teach}代币）`
-              ];
-              const chioceCancel = "不升级";
-              const chiocesAll = ["加上限", "加候选", "教别人", chioceCancel] as const;
-              const disableChoice = (i: number) => {
-                choiceList[i] = `<span style="opacity:0.5">${choiceList[i]}</span>`;
-              };
-              if (token >= cost.max) {
-                choices.push(chiocesAll[0]);
-              } else {
-                disableChoice(0);
-              }
-              if (token >= cost.choose) {
-                choices.push(chiocesAll[1]);
-              } else {
-                disableChoice(1);
-              }
-              if (token >= cost.teach && aomiTeachableSkills.length > 0) {
-                choices.push(chiocesAll[2]);
-              } else {
-                disableChoice(2);
+              const choiceList: string[] = [];
+              const choices: (AomiUpgradeTranslate | "不升级")[] = [];
+              for (const info of aomiUpgradeInfos) {
+                const stat = LucilorExt.getStorage(player, `aomi_upgrade_${info.name}`, 0);
+                const cost = info.getCost(player);
+                // const limit = info.getLimit();
+                const arr = [`当前${stat}`];
+                // if (isFinite(limit)) {
+                //   arr.push(`最多${limit}`);
+                // }
+                arr.push(`消耗${cost}代币`);
+                let str = `${info.detail}（${arr.join("，")}）`;
+                if (token < cost) {
+                  str = `<span style="opacity:0.5">${str}</span>`;
+                } else {
+                  choices.push(info.translate);
+                }
+                choiceList.push(str);
               }
               if (choices.length > 0) {
-                choices.push(chioceCancel);
+                choices.push("不升级");
                 const title = `消耗代币升级奥秘技能库<br>当前代币：${token}`;
                 const result = await player
                   .chooseControl(choices)
                   .set("prompt", title)
                   .set("choiceList", choiceList)
                   .set("ai", () => {
-                    const max = LucilorExt.getStorage(player, "aomi_max", 0);
-                    const choose = LucilorExt.getStorage(player, "aomi_choose", 0);
-                    if (max < choose && choices.includes(chiocesAll[0])) {
-                      return chiocesAll[0];
+                    const capacity = getAomiUpgradeStat(player, "capacity");
+                    const optionsNum = getAomiUpgradeStat(player, "optionsNum");
+                    if (capacity < optionsNum && choices.includes("加上限")) {
+                      return "加上限";
                     }
-                    if (choices.includes(chiocesAll[1])) {
-                      return chiocesAll[1];
+                    if (choices.includes("加候选")) {
+                      return "加候选";
                     }
-                    return choices.length > 0 ? choices[0] : chioceCancel;
+                    return choices[0];
                   })
                   .forResult();
-                const cost2 = LucilorExt.skillHelper.getAomiUpgradeCost(player);
                 let isUpgraded2 = false;
-                switch (result.control) {
-                  case chiocesAll[0]:
-                    LucilorExt.setStorageWith(player, "aomi_max", (val: number) => val + 1);
-                    LucilorExt.setStorageWith(player, "aomi_token", (val: number) => val - cost2.max);
-                    isUpgraded2 = true;
-                    break;
-                  case chiocesAll[1]:
-                    LucilorExt.setStorageWith(player, "aomi_choose", (val: number) => val + 1);
-                    LucilorExt.setStorageWith(player, "aomi_token", (val: number) => val - cost2.choose);
-                    isUpgraded2 = true;
-                    break;
-                  case chiocesAll[2]: {
-                    const result = await LucilorExt.skillHelper.chooseSkills(player, {
-                      chooseFrom: aomiTeachableSkills,
-                      chooseFromLabel: "拥有技能",
-                      chooseTo: [],
-                      chooseToLabel: "教授技能",
-                      limit: 1
-                    });
-                    if (result) {
-                      const skillToTeach = result.skills1[0].name;
-                      if (skillToTeach) {
-                        const result = await player
-                          .chooseTarget(choiceList[2], (card: Card, player: Player, target: Player) => {
-                            return target !== player && !target.hasSkill(skillToTeach);
-                          })
-                          .forResult();
-                        if (result.bool) {
-                          LucilorExt.setStorageWith(player, "aomi_token", (val: number) => val - cost2.teach);
-                          player.line(result.targets, "green");
-                          const target = result.targets[0];
-                          LucilorExt.skillHelper.addSkillLog(skillToTeach, target);
-                          LucilorExt.skillHelper.tryUseStartSkills(event, target, [skillToTeach]);
-                        }
-                      }
-                    }
-                    break;
-                  }
+                const name = aomiUpgradeInfos.find((info) => info.translate === result.control)?.name;
+                if (name) {
+                  const cost = aomiUpgradeInfos.find((info) => info.name === name)?.getCost(player) ?? 0;
+                  setAomiUpgradeStatWith(player, name, 1);
+                  LucilorExt.setStorageWith(player, "aomi_token", (val: number) => val - cost);
+                  isUpgraded2 = true;
                 }
                 if (isUpgraded2) {
                   isUpgraded = true;
@@ -266,7 +222,7 @@ export const getAomiSkillSet: SkillSetGetter = () => [
             global: "dieBefore"
           },
           persevereSkill: true,
-          filter: (event, player) => 0 < LucilorExt.getStorage(player, "aomi_max", 0),
+          filter: (event, player) => 0 < getAomiUpgradeStat(player, "capacity"),
           logTarget: "player",
           skillAnimation: true,
           animationColor: "thunder",
@@ -287,12 +243,12 @@ export const getAomiSkillSet: SkillSetGetter = () => [
           },
           check: (event, player) => get.attitude(player, event.player) >= 3,
           content: async (event, trigger, player) => {
-            const max = LucilorExt.getStorage(player, "aomi_max", 0);
-            if (max < 1) {
+            const capacity = getAomiUpgradeStat(player, "capacity");
+            if (capacity < 1) {
               return;
             }
             LucilorExt.setStorageWith(player, "aomi_reviveCount", (val: number) => val + 1);
-            LucilorExt.setStorage(player, "aomi_max", max - 1);
+            setAomiUpgradeStatWith(player, "capacity", -1);
             trigger.cancel();
             if (trigger.player.maxHp < 1) {
               trigger.player.maxHp = 1;
@@ -324,6 +280,35 @@ export const getAomiSkillSet: SkillSetGetter = () => [
     }
   }
 ];
+
+export const aomiUpgeadeNames = ["capacity", "optionsNum", "discover"] as const;
+export type AomiUpgradeName = (typeof aomiUpgeadeNames)[number];
+export interface AomiUpgradeInfo {
+  name: AomiUpgradeName;
+  translate: string;
+  detail: string;
+  getCost: (player: Player) => number;
+  getLimit: () => number;
+}
+export const aomiUpgradeInfos = [
+  {
+    name: "capacity",
+    translate: "加上限",
+    detail: "技能库上限+1",
+    getCost: (player) => Math.max(2, getAomiUpgradeStat(player, "capacity")),
+    getLimit: () => 5
+  },
+  {name: "optionsNum", translate: "加候选", detail: "候选技能数量+1", getCost: () => 2, getLimit: () => 10}
+] as const satisfies AomiUpgradeInfo[];
+export type AomiUpgradeTranslate = (typeof aomiUpgradeInfos)[number]["translate"];
+
+const getAomiUpgradeStorageKey = (name: AomiUpgradeName) => `aomi_upgrade_${name}`;
+export const getAomiUpgradeStat = (player: Player, name: AomiUpgradeName) =>
+  LucilorExt.getStorage(player, getAomiUpgradeStorageKey(name), 0);
+export const setAomiUpgradeStat = (player: Player, name: AomiUpgradeName, val: number) =>
+  LucilorExt.setStorage(player, getAomiUpgradeStorageKey(name), val);
+export const setAomiUpgradeStatWith = (player: Player, name: AomiUpgradeName, dVal: number) =>
+  LucilorExt.setStorageWith(player, getAomiUpgradeStorageKey(name), (val) => val + dVal);
 
 export const updateAomiSkills = async () => {
   const getSkillAudio = (name: string): string => {
