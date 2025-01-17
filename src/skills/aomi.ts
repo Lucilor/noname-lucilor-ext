@@ -1,6 +1,25 @@
 import {keysOf} from "@lucilor/utils";
 import {sample} from "lodash";
+import {skillPriorityMax, skillPriorityMin} from "./constans";
 import {SkillSetGetter} from "./types";
+
+const getHuishiCardsToRemove = () => {
+  const shouldRemove = (card: Card) => ["zhuge", "rewrite_zhuge"].includes(card.name);
+  const toRemove: {pile: Card[]; targets: {target: Player; cards: Card[]}[]} = {pile: [], targets: []};
+  for (const pile of ["cardPile", "discardPile"] as const) {
+    const cards = Array.from(ui[pile].childNodes as NodeListOf<Card>).filter(shouldRemove);
+    if (cards.length > 0) {
+      toRemove.pile.push(...cards);
+    }
+  }
+  for (const target of game.filterPlayer()) {
+    const cards = target.getCards("hej", shouldRemove);
+    if (cards.length > 0) {
+      toRemove.targets.push({target, cards});
+    }
+  }
+  return toRemove;
+};
 
 export const getAomiSkillSet: SkillSetGetter = () => [
   {
@@ -54,7 +73,7 @@ export const getAomiSkillSet: SkillSetGetter = () => [
             player: ["phaseBefore"]
           },
           persevereSkill: true,
-          priority: Infinity,
+          priority: skillPriorityMax,
           forced: true,
           content: async (event, trigger, player) => {
             await LucilorExt.skillHelper.discoverAomiSkill(event, player);
@@ -65,7 +84,7 @@ export const getAomiSkillSet: SkillSetGetter = () => [
             player: ["phaseAfter", "turnOverAfter"]
           },
           persevereSkill: true,
-          priority: -Infinity,
+          priority: skillPriorityMin,
           forced: true,
           content: async (event, trigger, player) => {
             await LucilorExt.skillHelper.discoverAomiSkill(event, player);
@@ -158,6 +177,11 @@ export const getAomiSkillSet: SkillSetGetter = () => [
           },
           persevereSkill: true,
           forced: true,
+          priority: skillPriorityMax,
+          filter: (event, player) => {
+            const maxHp = Math.ceil(LucilorExt.skillHelper.getAvgMaxHp(player));
+            return player.maxHp !== maxHp;
+          },
           content: async (event, trigger, player) => {
             const maxHp = Math.ceil(LucilorExt.skillHelper.getAvgMaxHp(player));
             if (player.maxHp < maxHp) {
@@ -170,49 +194,52 @@ export const getAomiSkillSet: SkillSetGetter = () => [
         },
         huishi: {
           trigger: {
-            global: "gameStart"
+            global: ["gameStart", "roundStart"]
           },
           persevereSkill: true,
           forced: true,
+          priority: skillPriorityMax - 1,
+          filter: (event) => {
+            if (event.triggername === "gameStart") {
+              return true;
+            }
+            const toRemove = getHuishiCardsToRemove();
+            return toRemove.pile.length > 0 || toRemove.targets.length > 0;
+          },
           content: async (event, trigger, player: Player) => {
-            const shouldRemove = (card: Card) => ["zhuge", "rewrite_zhuge", ""].includes(card.name);
-            const toRemove: Card[] = [];
-            for (const pile of ["cardPile", "discardPile"] as const) {
-              const cards = Array.from(ui[pile].childNodes as NodeListOf<Card>).filter(shouldRemove);
-              if (cards.length > 0) {
-                toRemove.push(...cards);
-                player.$throw(cards, undefined, undefined, undefined);
-              }
+            const toRemove = getHuishiCardsToRemove();
+            const cardsAll: Card[] = [];
+            if (toRemove.pile.length > 0) {
+              player.$throw(toRemove.pile, undefined, undefined, undefined);
+              cardsAll.push(...toRemove.pile);
             }
-            for (const player of game.filterPlayer()) {
-              const cards = player.getCards("hej", shouldRemove);
-              if (cards.length) {
-                toRemove.push(...cards);
-                player.$throw(cards, undefined, undefined, undefined);
-              }
+            for (const {target, cards} of toRemove.targets) {
+              target.$throw(cards, undefined, undefined, undefined);
+              cards.push(...cards);
             }
-            if (toRemove.length > 0) {
-              game.cardsGotoSpecial(toRemove);
-              game.log(toRemove, "被移出了游戏");
+            if (cardsAll.length > 0) {
+              game.cardsGotoSpecial(cardsAll);
+              game.log(cardsAll, "被移出了游戏");
             }
 
-            let targets: Player[] = player.getFriends();
-            if (targets.length < 1) {
-              targets = game.players.filter((p) => p !== player);
-            }
-            const target = sample(targets);
-            if (target) {
-              if (!_status.connectMode) {
-                if (player === game.me) {
-                  target.setIdentity();
-                  target.node.identity.classList.remove("guessing");
-                  player.line(target, "green");
-                  player.popup(LucilorExt.getSkillName("aomi"));
-                }
-              } else {
+            if (event.triggername === "gameStart") {
+              let targets: Player[] = player.getFriends((p: Player) => !p.identityShown);
+              if (targets.length < 1) {
+                targets = game.players.filter((p) => p !== player && !p.identityShown);
+              }
+              const target = sample(targets);
+              if (target) {
                 player
                   .chooseControl("ok")
                   .set("dialog", [`${get.translation(target)}是${get.translation(target.identity + "2")}`, [[target.name], "character"]]);
+                if (!_status.connectMode) {
+                  if (player === game.me) {
+                    target.setIdentity();
+                    target.node.identity.classList.remove("guessing");
+                    player.line(target, "green");
+                    player.popup(LucilorExt.getSkillName("aomi"));
+                  }
+                }
               }
             }
           }
@@ -270,7 +297,7 @@ export const getAomiSkillSet: SkillSetGetter = () => [
         "持恒技。",
         `<font color="#ff92f9"<b>『学无止境』</b></font><br>锁定技，游戏开始时、回合开始前、回合结束后和你翻面后，休整技能库。你每受到1点伤害（或体力流失）后获得1枚代币，若此时代币足够升级，则升级技能库。`,
         `<font color="#ff92f9"<b>『唯我独尊』</b></font><br>锁定技，每轮开始时，若你的体力上限：大于X，你减1点体力上限；小于X，你加1点体力上限并回复1点体力（X为其他角色的平均体力上限，向上取整）。`,
-        `<font color="#ff92f9"<b>『慧识摘星』</b></font><br>锁定技，游戏开始时，你将所有【诸葛连弩】、【元戎精械弩】移出游戏，然后随机得知一名友方角色（若没有则改为随机角色）的身份。`,
+        `<font color="#ff92f9"<b>『慧识摘星』</b></font><br>锁定技，游戏开始时和每轮开始时，你将所有【诸葛连弩】、【元戎精械弩】移出游戏；游戏开始时，你随机得知一名友方角色（若没有则改为随机角色）的身份。`,
         `<font color="#ff92f9"<b>『漫漫路远』</b></font><br>一名角色死亡前，你可以减少1技能库上限（若足够）并防止该角色死亡，其弃置判定区内的牌并复原武将牌，然后将体力回复至1并摸3张牌。`
       ].join("<br>")
     },
