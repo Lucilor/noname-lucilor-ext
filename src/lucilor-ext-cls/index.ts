@@ -214,16 +214,6 @@ export class LucilorExtCls {
     }
   }
 
-  resize() {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const remote = require("@electron/remote");
-    const win = remote.getCurrentWindow();
-    const screen = remote.screen;
-    const screenSize = screen.getPrimaryDisplay().workAreaSize;
-    win.setSize(Math.min(1920, screenSize.width), Math.min(1080, screenSize.height));
-    win.center();
-  }
-
   getConfig<T extends keyof LucilorExtConfig>(key: T): LucilorExtConfig[T] {
     return game.getExtensionConfig(EXTENSION_NAME, key);
   }

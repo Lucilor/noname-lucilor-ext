@@ -208,18 +208,15 @@ export const getAomiSkillSet: SkillSetGetter = () => [
           },
           content: async (event, trigger, player: Player) => {
             const toRemove = getHuishiCardsToRemove();
-            const cardsAll: Card[] = [];
             if (toRemove.pile.length > 0) {
               player.$throw(toRemove.pile, undefined, undefined, undefined);
-              cardsAll.push(...toRemove.pile);
+              await game.cardsGotoSpecial(toRemove.pile);
+              game.log(toRemove.pile, "被移出了游戏");
             }
             for (const {target, cards} of toRemove.targets) {
               target.$throw(cards, undefined, undefined, undefined);
-              cards.push(...cards);
-            }
-            if (cardsAll.length > 0) {
-              game.cardsGotoSpecial(cardsAll);
-              game.log(cardsAll, "被移出了游戏");
+              await target.lose(cards, ui.special);
+              game.log(cards, "被移出了游戏");
             }
 
             if (event.triggername === "gameStart") {

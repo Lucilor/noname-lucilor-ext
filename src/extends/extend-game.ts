@@ -13,8 +13,6 @@ export const extendGamePre: GameImportFunction = (...args) => {
         // eslint-disable-next-line @typescript-eslint/no-require-imports
         const webContents = require("@electron/remote").getCurrentWebContents();
         webContents.toggleDevTools();
-      } else if (key === "e") {
-        LucilorExt.resize();
       } else if (key === "r") {
         game.reload();
       } else if (key === "`") {
@@ -90,7 +88,7 @@ const extLibPre: GameImportFunction = () => {
   // Here goes nothing
 };
 
-const extGamePre: GameImportFunction = () => {
+const extGamePre: GameImportFunction = (lib, game) => {
   if (LucilorExt.getConfig("showCardCount")) {
     document.body.classList.add(LucilorExt.getClassName("show-card-count"));
     window.setInterval(() => {

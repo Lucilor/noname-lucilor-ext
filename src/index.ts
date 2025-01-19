@@ -21,13 +21,7 @@ game.import("extension", (lib, game, ui, get, ai, status) => {
       for (const key in obj) {
         LucilorExt.setWindowConst(key, (obj as any)[key]);
       }
-      const extPath = LucilorExt.assetsUrl;
-      const addCss = (dir: string, name: string) => lib.init.css(dir, name);
-      addCss(extPath, "extension");
       extendGamePre(lib, game, ui, get, ai, status);
-      if (LucilorExt.getConfig("resizeOnStart")) {
-        LucilorExt.resize();
-      }
     },
     content: () => {
       (window as any).game = game;

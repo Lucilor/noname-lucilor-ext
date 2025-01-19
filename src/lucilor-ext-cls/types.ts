@@ -19,7 +19,6 @@ export interface LucilorExtConfig {
   colorfulSkillInfo: boolean;
   replaceCharacter: string;
   singleCharacter: boolean;
-  resizeOnStart: boolean;
   menuStyles: boolean;
   showCardCount: boolean;
 }

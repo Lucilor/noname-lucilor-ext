@@ -12,7 +12,6 @@ export const getExtensionConfigMenu: GameImportFunction<importExtensionConfig["c
       item: {none: "关闭", random: "随机", ...mapValues(keyBy(LucilorExt.aomiSkillConfigs, "character"), "characterCN")}
     },
     singleCharacter: {name: "单将样式", intro: "双将模式下使用单将样式", init: false},
-    resizeOnStart: {name: "调整窗口", intro: "启动时调整窗口大小并居中", init: false},
     menuStyles: {name: "菜单美化", intro: "菜单页面使用自定义样式", init: false},
     showCardCount: {name: "显示手牌", intro: "显示手牌数及手牌上限", init: false}
   };
