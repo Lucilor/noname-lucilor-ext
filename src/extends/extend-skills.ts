@@ -2,11 +2,6 @@ import {ObjectOf} from "@lucilor/utils";
 import {sample, sampleSize} from "lodash";
 
 export const extendSkills: GameImportFunction = (lib, game, ui, get) => {
-  lib.skill["requanfeng_gain"].filter = (event) =>
-    event.player.getStockSkills(true, true).filter((skill) => {
-      const info = get.info(skill, event.player);
-      return info && !info.hiddenSkill && !info.preHidden && !info.zhuSkill && !info.charlotte;
-    }).length > 0;
   if (LucilorExt.getConfig("skipMiniGames")) {
     lib.skill["chongxu"].content = async (event, trigger, player) => {
       let score = 5;
@@ -276,6 +271,4 @@ export const extendSkills: GameImportFunction = (lib, game, ui, get) => {
       }
     };
   }
-
-  lib.character["sb_liubei"][3] = ["sbrende", "sbjijiang"];
 };
