@@ -13,7 +13,8 @@ export const getExtensionConfigMenu: GameImportFunction<importExtensionConfig["c
     },
     singleCharacter: {name: "单将样式", intro: "双将模式下使用单将样式", init: false},
     menuStyles: {name: "菜单美化", intro: "菜单页面使用自定义样式", init: false},
-    showCardCount: {name: "显示手牌", intro: "显示手牌数及手牌上限", init: false}
+    showCardCount: {name: "显示手牌", intro: "显示手牌数及手牌上限", init: false},
+    autoZoom: {name: "自动缩放", intro: "自动设置游戏缩放为系统缩放", init: false}
   };
   return config;
 };

@@ -22,7 +22,7 @@ export const extendGamePre: GameImportFunction = (...args) => {
   });
 };
 
-export const extendGame: GameImportFunction = () => {
+export const extendGame: GameImportFunction = (lib, game) => {
   const aomiSkillConfig = LucilorExt.aomiSkillConfig;
   if (aomiSkillConfig) {
     const character = aomiSkillConfig.character;
@@ -81,6 +81,10 @@ export const extendGame: GameImportFunction = () => {
         })
         .catch();
     })();
+  }
+  if (LucilorExt.getConfig("autoZoom")) {
+    const zoom = window.devicePixelRatio || 1;
+    game.saveConfig("ui_zoom", zoom);
   }
 };
 
