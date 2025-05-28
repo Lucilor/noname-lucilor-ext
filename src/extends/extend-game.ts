@@ -84,7 +84,7 @@ export const extendGame: GameImportFunction = (lib, game) => {
   }
   if (LucilorExt.getConfig("autoZoom")) {
     const zoom = window.devicePixelRatio || 1;
-    game.saveConfig("ui_zoom", zoom);
+    game.saveConfig("ui_zoom", zoom * 100);
   }
 };
 
